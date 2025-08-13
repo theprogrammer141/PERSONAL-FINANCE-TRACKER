@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Personal Finance Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+
+  <!-- Dark gray & soft tones -->
+  <body class="bg-slate-900 min-h-screen text-slate-100 antialiased">
+    <!-- Container -->
+    <div class="max-w-6xl mx-auto p-6">
+      <!-- Header -->
+      <header class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-semibold tracking-tight">
+            Personal Finance Tracker
+          </h1>
+          <p class="text-sm text-slate-400">
+            Track income, expenses and balance
+          </p>
+        </div>
+
+        <div class="flex gap-3 items-center">
+          <button
+            id="exportCsvBtn"
+            class="btn text-sm border-1 border-white hover:border-slate-300 hover:bg-violet-700 hover:text-white hover:transition-transform hover:-translate-y-0.5"
+            title="Export CSV"
+          >
+            Export CSV
+          </button>
+
+          <button
+            id="resetBtn"
+            class="btn border-1 border-white hover:border-slate-300 hover:bg-violet-700 hover:text-white hover:transition-transform hover:-translate-y-0.5 text-sm"
+            title="Reset all data"
+          >
+            Reset
+          </button>
+        </div>
+      </header>
+
+      <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- LEFT: Form + Filters -->
+        <section class="lg:col-span-1 space-y-6">
+          <!-- Add Transaction Form -->
+          <div class="glass-card rounded-2xl shadow p-5">
+            <h2 class="text-lg font-medium mb-3 text-slate-100">
+              Add Transaction
+            </h2>
+
+            <form id="transactionForm" class="space-y-3" autocomplete="off">
+              <div>
+                <label
+                  for="title"
+                  class="block text-sm font-medium text-slate-300"
+                >
+                  Title
+                </label>
+                <input
+                  id="title"
+                  name="title"
+                  type="text"
+                  placeholder="e.g., Salary, Groceries"
+                  class="input mt-1 block w-full rounded-md p-2"
+                />
+                <span
+                  id="titleError"
+                  style="
+                    display: none;
+                    color: #fb7185;
+                    font-size: 15px;
+                    margin-top: 5px;
+                  "
+                ></span>
+              </div>
+
+              <div>
+                <label
+                  for="amount"
+                  class="block text-sm font-medium text-slate-300"
+                >
+                  Amount
+                </label>
+                <input
+                  id="amount"
+                  name="amount"
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g., 2500"
+                  class="input mt-1 block w-full rounded-md p-2"
+                />
+                <span
+                  id="amountError"
+                  style="
+                    display: none;
+                    color: #fb7185;
+                    font-size: 15px;
+                    margin-top: 5px;
+                  "
+                ></span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label
+                    for="type"
+                    class="block text-sm font-medium text-slate-300"
+                  >
+                    Type
+                  </label>
+                  <select
+                    id="type"
+                    name="type"
+                    class="input mt-1 block w-full rounded-md p-2"
+                  >
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    for="date"
+                    class="block text-sm font-medium text-slate-300"
+                  >
+                    Date
+                  </label>
+                  <input
+                    id="date"
+                    name="date"
+                    type="date"
+                    class="input mt-1 block w-full rounded-md p-2"
+                  />
+                </div>
+              </div>
+
+              <div class="flex gap-2">
+                <button
+                  id="addBtn"
+                  type="submit"
+                  class="btn primary-btn flex-1"
+                >
+                  Add Transaction
+                </button>
+                <button
+                  id="clearFormBtn"
+                  type="button"
+                  class="btn secondary-btn"
+                >
+                  Clear
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Filters -->
+          <div class="glass-card rounded-2xl shadow p-5">
+            <h3 class="text-md font-medium mb-3 text-slate-100">Filters</h3>
+
+            <div class="space-y-3">
+              <div>
+                <label
+                  for="filterType"
+                  class="block text-sm font-medium text-slate-300"
+                >
+                  Type
+                </label>
+                <select
+                  id="filterType"
+                  class="input mt-1 block w-full rounded-md p-2"
+                >
+                  <option value="all">All</option>
+                  <option value="income">Income</option>
+                  <option value="expense">Expense</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-slate-300"
+                  >Date Range</label
+                >
+                <div class="grid grid-cols-2 gap-3 mt-1">
+                  <input
+                    id="filterFrom"
+                    type="month"
+                    class="input rounded-md p-2"
+                  />
+                  <input
+                    id="filterTo"
+                    type="month"
+                    class="input rounded-md p-2"
+                  />
+                </div>
+              </div>
+
+              <div class="flex gap-2">
+                <button id="applyFiltersBtn" class="btn primary-btn flex-1">
+                  Apply
+                </button>
+                <button id="clearFiltersBtn" class="btn ghost-btn">
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Tips -->
+          <div class="glass-card rounded-2xl shadow p-4 text-sm text-slate-300">
+            <h4 class="font-medium mb-2 text-slate-100">Pro tips</h4>
+            <ul class="list-disc pl-5 space-y-1">
+              <li>Use descriptive titles for each transaction.</li>
+              <li>Try filtering by month to spot spending patterns.</li>
+              <li>Export CSV before resetting data.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- MIDDLE: Summary + Charts -->
+        <section class="lg:col-span-2 space-y-6">
+          <!-- Summary Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div
+              class="glass-card rounded-xl p-4 shadow flex flex-col income-card"
+            >
+              <div class="flex items-center justify-between">
+                <p class="text-sm text-slate-300">Total Income</p>
+                <svg
+                  class="w-6 h-6 text-emerald-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden
+                >
+                  <path
+                    d="M12 3v12"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M9 6l3-3 3 3"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <h3 id="totalIncome" class="mt-4 text-xl font-semibold">₨0.00</h3>
+              <p class="text-xs text-slate-400 mt-1">Income this period</p>
+            </div>
+
+            <div
+              class="glass-card rounded-xl p-4 shadow flex flex-col expense-card"
+            >
+              <div class="flex items-center justify-between">
+                <p class="text-sm text-slate-300">Total Expenses</p>
+                <svg
+                  class="w-6 h-6 text-rose-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden
+                >
+                  <path
+                    d="M12 21V9"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M15 18l-3 3-3-3"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <h3 id="totalExpenses" class="mt-4 text-xl font-semibold">
+                ₨0.00
+              </h3>
+              <p class="text-xs text-slate-400 mt-1">Expenses this period</p>
+            </div>
+
+            <div
+              class="glass-card rounded-xl p-4 shadow flex flex-col balance-card"
+            >
+              <div class="flex items-center justify-between">
+                <p class="text-sm text-slate-300">Balance</p>
+                <svg
+                  class="w-6 h-6 text-sky-300"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden
+                >
+                  <path
+                    d="M12 3v6"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M5 21h14"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </div>
+              <h3 id="balance" class="mt-4 text-xl font-semibold">₨0.00</h3>
+              <p id="balanceSubtitle" class="text-xs text-slate-400 mt-1">
+                Income - Expenses
+              </p>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div
+            class="glass-card rounded-2xl shadow p-5 grid grid-cols-1 lg:grid-cols-2 gap-6"
+          >
+            <div>
+              <h4 class="text-md font-medium mb-3 text-slate-100">
+                Income vs Expenses
+              </h4>
+              <canvas
+                id="pieChart"
+                aria-label="Income vs Expenses chart"
+                role="img"
+              ></canvas>
+            </div>
+
+            <div>
+              <h4 class="text-md font-medium mb-3 text-slate-100">
+                Monthly Trend
+              </h4>
+              <canvas
+                id="lineChart"
+                aria-label="Monthly trend chart"
+                role="img"
+              ></canvas>
+            </div>
+          </div>
+
+          <!-- Transactions List -->
+          <div class="glass-card rounded-2xl shadow p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-medium text-slate-100">Transactions</h3>
+              <div class="text-sm text-slate-400">
+                Showing <span id="transactionsCount">0</span> entries
+              </div>
+            </div>
+
+            <div class="table-scroll border border-transparent rounded-lg">
+              <table class="min-w-full divide-y divide-slate-800">
+                <thead class="sticky top-0 bg-slate-900/40 backdrop-blur-md">
+                  <tr class="text-left text-xs uppercase text-slate-400">
+                    <th class="p-3">Title</th>
+                    <th class="p-3">Date</th>
+                    <th class="p-3">Type</th>
+                    <th class="p-3 text-right">Amount</th>
+                    <th class="p-3">Actions</th>
+                  </tr>
+                  <span id="noTransactions" class="text-center hidden text-sm"
+                    >No Transactions</span
+                  >
+                </thead>
+
+                <tbody
+                  id="transactionsTableBody"
+                  class="bg-transparent divide-y divide-slate-800"
+                ></tbody>
+              </table>
+
+              <!-- Edit Modal -->
+              <div
+                id="editModal"
+                class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+                style="display: none"
+              >
+                <div class="modal-content p-6 w-full max-w-md rounded-2xl">
+                  <h2 class="text-lg font-semibold mb-4 text-slate-100">
+                    Edit Transaction
+                  </h2>
+
+                  <!-- Title -->
+                  <label
+                    for="editTitle"
+                    class="block text-sm font-medium text-slate-300"
+                  >
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    id="editTitle"
+                    class="input mt-1 block w-full rounded-md p-2"
+                  />
+                  <span
+                    id="editTitleError"
+                    class="text-red-500 text-sm mt-1 hidden"
+                  ></span>
+
+                  <!-- Amount -->
+                  <label
+                    for="editAmount"
+                    class="block text-sm font-medium text-slate-300 mt-3"
+                    >Amount</label
+                  >
+                  <input
+                    type="number"
+                    step="0.01"
+                    id="editAmount"
+                    class="input mt-1 block w-full rounded-md p-2"
+                  />
+                  <span
+                    id="editAmountError"
+                    class="text-red-500 text-sm mt-1 hidden"
+                  ></span>
+
+                  <!-- Type -->
+                  <label
+                    for="editType"
+                    class="block text-sm font-medium text-slate-300 mt-3"
+                    >Type</label
+                  >
+                  <select
+                    id="editType"
+                    class="input mt-1 block w-full rounded-md p-2"
+                  >
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                  </select>
+
+                  <!-- Date -->
+                  <label
+                    for="editDate"
+                    class="block text-sm font-medium text-slate-300 mt-3"
+                    >Date</label
+                  >
+                  <input
+                    type="date"
+                    id="editDate"
+                    class="input mt-1 block w-full rounded-md p-2"
+                  />
+
+                  <!-- Buttons -->
+                  <div class="mt-6 flex justify-end gap-3">
+                    <button id="cancelEditBtn" class="btn ghost-btn">
+                      Cancel
+                    </button>
+                    <button id="saveEditBtn" class="btn primary-btn">
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex justify-between items-center">
+              <small class="text-slate-400"></small>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Export CSV Modal -->
+    <div
+      id="exportModal"
+      class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+      style="display: none"
+    >
+      <div class="modal-content p-6 w-full max-w-md rounded-2xl">
+        <h2 class="text-lg font-semibold mb-4 text-slate-100">
+          Export Transactions
+        </h2>
+        <p class="text-sm text-slate-300">
+          Do you want to export all transactions as a CSV file?
+        </p>
+        <div class="mt-6 flex justify-end gap-3">
+          <button id="cancelExportBtn" class="btn ghost-btn">Cancel</button>
+          <button id="confirmExportBtn" class="btn primary-btn">Export</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reset Confirmation Modal -->
+    <div
+      id="resetModal"
+      class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+      style="display: none"
+    >
+      <div class="modal-content p-6 w-full max-w-md rounded-2xl">
+        <h2 class="text-lg font-semibold mb-4 text-slate-100">
+          Reset All Data
+        </h2>
+        <p class="text-sm text-slate-300">
+          This will permanently delete all transactions and reset the tracker.
+          Are you sure?
+        </p>
+        <div class="mt-6 flex justify-end gap-3">
+          <button id="cancelResetBtn" class="btn ghost-btn">Cancel</button>
+          <button
+            id="confirmResetBtn"
+            class="btn"
+            style="
+              background: linear-gradient(90deg, #ef4444, #f87171);
+              color: white;
+            "
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Transaction Confirmation Modal -->
+    <div
+      id="deleteModal"
+      class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+      style="display: none"
+    >
+      <div class="modal-content p-6 w-full max-w-md rounded-2xl">
+        <h2 class="text-lg font-semibold mb-4 text-slate-100">
+          Delete Transaction
+        </h2>
+        <p class="text-sm text-slate-300">
+          Are you sure you want to delete this transaction? This action cannot
+          be undone.
+        </p>
+        <div class="mt-6 flex justify-end gap-3">
+          <button id="cancelDeleteBtn" class="btn ghost-btn">Cancel</button>
+          <button
+            id="confirmDeleteBtn"
+            class="btn"
+            style="
+              background: linear-gradient(90deg, #ef4444, #dc2626);
+              color: white;
+            "
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
